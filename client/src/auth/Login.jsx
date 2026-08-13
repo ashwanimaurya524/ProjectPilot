@@ -1,100 +1,104 @@
 import { useState } from "react"
-import { Eye, EyeOff, Rocket } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
+import { Eye, EyeOff, Rocket } from "lucide-react"
+import api from "../api/axios"
 
 function Login() {
   const navigate = useNavigate()
-
-  const [showPassword, setShowPassword] = useState(false)
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    console.log("Login data:", formData)
+    setError("")
 
-    // Temporary navigation
-    navigate("/")
+    if (!formData.email || !formData.password) {
+      setError("Please enter email and password.")
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const response = await api.post(
+        "/api/auth/login",
+        {
+          email: formData.email,
+          password: formData.password,
+        }
+      )
+
+      console.log("Login response:", response.data)
+
+      // We'll add JWT/token handling on Day 6.
+      navigate("/dashboard")
+
+    } catch (error) {
+      console.error("Login error:", error)
+
+      const message =
+        error.response?.data?.message ||
+        "Login failed. Please try again."
+
+      setError(message)
+
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4">
 
-      {/* Left side */}
-      <div className="hidden w-1/2 flex-col justify-between bg-slate-900 p-12 lg:flex">
+      <div className="w-full max-w-md">
 
-        <div className="flex items-center gap-3">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div className="flex items-center gap-2">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600">
+              <Rocket size={22} />
+            </div>
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600">
-            <Rocket size={23} />
-          </div>
-
-          <div>
-            <h1 className="text-xl font-bold">
+            <span className="text-2xl font-bold">
               ProjectPilot
+            </span>
+          </div>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
+
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold">
+              Welcome back
             </h1>
 
-            <p className="text-xs text-slate-500">
-              AI Project Manager
+            <p className="mt-2 text-sm text-slate-400">
+              Sign in to continue to ProjectPilot
             </p>
           </div>
 
-        </div>
-
-        <div>
-
-          <h2 className="max-w-lg text-5xl font-bold leading-tight">
-            Manage projects.
-            <br />
-            Work smarter.
-            <br />
-            <span className="text-blue-500">
-              Build faster.
-            </span>
-          </h2>
-
-          <p className="mt-6 max-w-md text-slate-400">
-            Bring your projects, teams, tasks and AI assistance
-            together in one powerful workspace.
-          </p>
-
-        </div>
-
-        <p className="text-sm text-slate-600">
-          © 2026 ProjectPilot AI
-        </p>
-
-      </div>
-
-      {/* Right side */}
-      <div className="flex flex-1 items-center justify-center p-6">
-
-        <div className="w-full max-w-md">
-
-          <div className="mb-8">
-
-            <h2 className="text-3xl font-bold">
-              Welcome back
-            </h2>
-
-            <p className="mt-2 text-slate-400">
-              Sign in to continue to ProjectPilot.
-            </p>
-
-          </div>
+          {/* Error */}
+          {error && (
+            <div className="mb-5 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
 
           <form
             onSubmit={handleSubmit}
@@ -103,8 +107,7 @@ function Login() {
 
             {/* Email */}
             <div>
-
-              <label className="mb-2 block text-sm font-medium">
+              <label className="mb-2 block text-sm font-medium text-slate-300">
                 Email
               </label>
 
@@ -114,29 +117,29 @@ function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                required
-                className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500"
               />
-
             </div>
 
             {/* Password */}
             <div>
-
-              <label className="mb-2 block text-sm font-medium">
+              <label className="mb-2 block text-sm font-medium text-slate-300">
                 Password
               </label>
 
               <div className="relative">
 
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  required
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 pr-12 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 pr-12 text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500"
                 />
 
                 <button
@@ -144,43 +147,43 @@ function Login() {
                   onClick={() =>
                     setShowPassword(!showPassword)
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
                   {showPassword ? (
-                    <EyeOff size={19} />
+                    <EyeOff size={20} />
                   ) : (
-                    <Eye size={19} />
+                    <Eye size={20} />
                   )}
                 </button>
 
               </div>
-
             </div>
 
             {/* Forgot password */}
             <div className="flex justify-end">
-
               <button
                 type="button"
                 className="text-sm text-blue-400 hover:text-blue-300"
               >
                 Forgot password?
               </button>
-
             </div>
 
-            {/* Submit */}
+            {/* Login button */}
             <button
               type="submit"
-              className="w-full rounded-xl bg-blue-600 py-3 font-semibold transition hover:bg-blue-700"
+              disabled={loading}
+              className="w-full rounded-xl bg-blue-600 py-3 font-semibold transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
+              {loading
+                ? "Signing in..."
+                : "Sign In"}
             </button>
 
           </form>
 
           {/* Register */}
-          <p className="mt-8 text-center text-sm text-slate-400">
+          <p className="mt-7 text-center text-sm text-slate-400">
 
             Don't have an account?{" "}
 

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Eye, EyeOff, Rocket } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link , useNavigate} from "react-router-dom"
+import api from "../api/axios"
 
 function Register() {
   const navigate = useNavigate()
@@ -8,6 +9,10 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false)
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,26 +22,71 @@ function Register() {
   })
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+  const { name, value } = e.target
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }))
+}
+
+  const handleSubmit = async (e) => {
+  e.preventDefault()
+
+  // Clear previous messages
+  setError("")
+  setSuccess("")
+
+  // Check password
+  if (formData.password !== formData.confirmPassword) {
+    setError("Passwords do not match.")
+    return
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match.")
-      return
-    }
-
-    console.log("Register data:", formData)
-
-    navigate("/login")
+  // Check password length
+  if (formData.password.length < 6) {
+    setError("Password must be at least 6 characters.")
+    return
   }
+
+  try {
+    // Start loading
+    setLoading(true)
+
+    // Send data to backend
+    const response = await api.post(
+      "/api/auth/register",
+      {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }
+    )
+
+    // Show backend response in browser console
+    console.log("REGISTER RESPONSE:", response.data)
+
+    // Show success message
+    setSuccess("Account created successfully!")
+
+    setTimeout(() => {
+  navigate("/login")
+}, 1500)
+
+  } catch (error) {
+    console.error("Registration error:", error)
+
+    const message =
+      error.response?.data?.message ||
+      "Something went wrong. Please try again."
+
+    setError(message)
+
+  } finally {
+    // Stop loading
+    setLoading(false)
+  }
+}
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-white">
@@ -103,6 +153,19 @@ function Register() {
             </p>
 
           </div>
+
+
+          {error && (
+  <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+    {error}
+  </div>
+)}
+
+{success && (
+  <div className="mb-5 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400">
+    {success}
+  </div>
+)}
 
           <form
             onSubmit={handleSubmit}
@@ -231,9 +294,10 @@ function Register() {
             {/* Submit */}
             <button
               type="submit"
-              className="mt-2 w-full rounded-xl bg-blue-600 py-3 font-semibold transition hover:bg-blue-700"
+              disabled={loading}
+              className="mt-2 w-full rounded-xl bg-blue-600 py-3 font-semibold transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Create Account
+              {loading ? "Creating account..." : "Create Account"}
             </button>
 
           </form>
