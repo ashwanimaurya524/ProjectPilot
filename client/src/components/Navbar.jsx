@@ -4,7 +4,12 @@ import {
   UserCircle,
 } from "lucide-react"
 
+import { useNavigate } from "react-router-dom"
+
 function Navbar() {
+
+  const navigate = useNavigate()
+
   return (
     <header className="flex h-20 items-center justify-between border-b border-slate-800 bg-slate-950 px-6">
 
@@ -57,6 +62,14 @@ function Navbar() {
           </div>
 
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={() => navigate("/login")}
+          className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-white"
+        >
+          Logout
+        </button>
 
       </div>
 
