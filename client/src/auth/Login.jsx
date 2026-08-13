@@ -45,7 +45,17 @@ function Login() {
 
       console.log("Login response:", response.data)
 
-      // We'll add JWT/token handling on Day 6.
+      localStorage.setItem(
+  "token",
+  response.data.token
+)
+
+localStorage.setItem(
+  "user",
+  JSON.stringify(response.data.user)
+)
+
+      
       navigate("/dashboard")
 
     } catch (error) {
