@@ -1,4 +1,3 @@
-import { useState } from "react"
 import {
   NavLink,
   Outlet,
@@ -10,132 +9,127 @@ import {
   FolderKanban,
   CheckSquare,
   Users,
+  MessageSquare,
+  Bot,
   BarChart3,
   Settings,
   Bell,
   LogOut,
-  Menu,
-  X,
   Rocket,
+  Search,
 } from "lucide-react"
 
 
 function DashboardLayout() {
+
   const navigate = useNavigate()
 
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Get logged-in user
-  const storedUser = localStorage.getItem("user")
+  // Get user from localStorage
+
+  const storedUser =
+    localStorage.getItem("user")
 
   const user = storedUser
     ? JSON.parse(storedUser)
     : null
 
 
-  // Logout function
+  // ========================================
+  // LOGOUT
+  // ========================================
+
   const handleLogout = () => {
-    // Remove authentication data
+
     localStorage.removeItem("token")
+
     localStorage.removeItem("user")
 
-    // Redirect to login
     navigate("/login", {
       replace: true,
     })
   }
 
 
+  // ========================================
+  // SIDEBAR ITEMS
+  // ========================================
+
   const navigation = [
+
     {
       name: "Dashboard",
       path: "/dashboard",
       icon: LayoutDashboard,
     },
+
     {
       name: "Projects",
       path: "/projects",
       icon: FolderKanban,
     },
+
     {
-      name: "Tasks",
+      name: "My Tasks",
       path: "/tasks",
       icon: CheckSquare,
     },
+
     {
-      name: "Team",
-      path: "/team",
+      name: "Teams",
+      path: "/teams",
       icon: Users,
     },
+
+    {
+      name: "Chat",
+      path: "/chat",
+      icon: MessageSquare,
+    },
+
+    {
+      name: "AI Assistant",
+      path: "/ai-assistant",
+      icon: Bot,
+    },
+
     {
       name: "Analytics",
       path: "/analytics",
       icon: BarChart3,
     },
-    {
-      name: "Settings",
-      path: "/settings",
-      icon: Settings,
-    },
+
   ]
 
 
   return (
+
     <div className="min-h-screen bg-slate-950 text-white">
 
 
-      {/* Mobile overlay */}
+      {/* =====================================
+          SIDEBAR
+      ===================================== */}
 
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-
-      {/* Sidebar */}
-
-      <aside
-        className={`
-          fixed
-          left-0
-          top-0
-          z-50
-          flex
-          h-screen
-          w-64
-          flex-col
-          border-r
-          border-slate-800
-          bg-slate-900
-          transition-transform
-          duration-300
-
-          ${
-            sidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
-          }
-        `}
-      >
+      <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-950">
 
 
         {/* Logo */}
 
-        <div className="flex h-16 items-center justify-between border-b border-slate-800 px-5">
+        <div className="flex h-20 items-center border-b border-slate-800 px-6">
 
           <div className="flex items-center gap-3">
 
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
 
-              <Rocket size={19} />
+              <Rocket size={20} />
 
             </div>
 
+
             <div>
 
-              <h1 className="font-bold">
+              <h1 className="text-xl font-bold">
                 ProjectPilot
               </h1>
 
@@ -147,32 +141,22 @@ function DashboardLayout() {
 
           </div>
 
-
-          {/* Mobile close button */}
-
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="text-slate-400 hover:text-white lg:hidden"
-          >
-            <X size={21} />
-          </button>
-
         </div>
 
 
         {/* Navigation */}
 
-        <nav className="flex-1 space-y-1 p-4">
+        <nav className="flex-1 space-y-2 p-4">
 
           {navigation.map((item) => {
 
             const Icon = item.icon
 
             return (
+
               <NavLink
                 key={item.name}
                 to={item.path}
-                onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
                   `
                   flex
@@ -188,7 +172,7 @@ function DashboardLayout() {
                   ${
                     isActive
                       ? "bg-blue-600 text-white"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                      : "text-slate-400 hover:bg-slate-900 hover:text-white"
                   }
                   `
                 }
@@ -201,6 +185,7 @@ function DashboardLayout() {
                 </span>
 
               </NavLink>
+
             )
 
           })}
@@ -208,45 +193,47 @@ function DashboardLayout() {
         </nav>
 
 
-        {/* User section */}
+        {/* Settings */}
 
         <div className="border-t border-slate-800 p-4">
 
-          <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-800/60 p-3">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `
+              flex
+              items-center
+              gap-3
+              rounded-xl
+              px-4
+              py-3
+              text-sm
+              font-medium
+              transition
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold">
+              ${
+                isActive
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:bg-slate-900 hover:text-white"
+              }
+              `
+            }
+          >
 
-              {user?.name
-                ? user.name.charAt(0).toUpperCase()
-                : "U"}
+            <Settings size={19} />
 
-            </div>
+            <span>
+              Settings
+            </span>
 
-
-            <div className="min-w-0 flex-1">
-
-              <p className="truncate text-sm font-medium text-white">
-
-                {user?.name || "User"}
-
-              </p>
-
-              <p className="truncate text-xs text-slate-500">
-
-                {user?.email || "user@example.com"}
-
-              </p>
-
-            </div>
-
-          </div>
+          </NavLink>
 
 
-          {/* Logout button */}
+          {/* Logout */}
 
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-red-500/10 hover:text-red-400"
+            className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-red-500/10 hover:text-red-400"
           >
 
             <LogOut size={19} />
@@ -262,78 +249,107 @@ function DashboardLayout() {
       </aside>
 
 
-      {/* Main section */}
+      {/* =====================================
+          MAIN AREA
+      ===================================== */}
 
-      <div className="lg:pl-64">
-
-
-        {/* Top navbar */}
-
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-800 bg-slate-950/90 px-4 backdrop-blur md:px-6">
+      <div className="ml-64">
 
 
-          {/* Mobile menu */}
+        {/* =================================
+            TOP NAVBAR
+        ================================= */}
 
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
-          >
-            <Menu size={22} />
-          </button>
+        <header className="flex h-20 items-center justify-between border-b border-slate-800 bg-slate-950 px-6">
 
 
-          {/* Page title area */}
+          {/* Search */}
 
-          <div className="hidden lg:block">
+          <div className="relative w-80">
 
-            <p className="text-sm text-slate-500">
-              Welcome back,
-            </p>
+            <Search
+              size={19}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+            />
 
-            <p className="font-medium">
-              {user?.name || "User"}
-            </p>
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full rounded-xl border border-slate-800 bg-slate-900 py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-500"
+            />
 
           </div>
 
 
           {/* Right side */}
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-6">
 
 
-            {/* Notifications */}
+            {/* Notification */}
 
-            <button
-              className="relative rounded-xl p-2.5 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-              title="Notifications"
-            >
+            <button className="relative text-slate-400 hover:text-white">
 
-              <Bell size={20} />
+              <Bell size={21} />
 
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500" />
+              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-blue-500" />
 
             </button>
 
 
-            {/* User avatar */}
+            {/* User */}
 
-            <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold sm:flex">
+            <div className="flex items-center gap-3">
 
-              {user?.name
-                ? user.name.charAt(0).toUpperCase()
-                : "U"}
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-700 bg-slate-800 text-lg font-semibold">
+
+                {user?.name
+                  ? user.name
+                      .charAt(0)
+                      .toUpperCase()
+                  : "U"}
+
+              </div>
+
+
+              <div className="hidden md:block">
+
+                <p className="text-sm font-semibold">
+
+                  {user?.name || "User"}
+
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Developer
+                </p>
+
+              </div>
 
             </div>
+
+
+            {/* Logout */}
+
+            <button
+              onClick={handleLogout}
+              className="text-sm text-slate-400 hover:text-white"
+            >
+
+              Logout
+
+            </button>
 
           </div>
 
         </header>
 
 
-        {/* Page content */}
+        {/* =================================
+            PAGE CONTENT
+        ================================= */}
 
-        <main className="p-4 md:p-6">
+        <main className="min-h-[calc(100vh-5rem)] p-6">
 
           <Outlet />
 

@@ -5,12 +5,12 @@ import {
 } from "react-router-dom"
 
 import Dashboard from "./pages/Dashboard"
+import Projects from "./pages/Projects"
 
 import Login from "./auth/Login"
 import Register from "./auth/Register"
 
 import ProtectedRoute from "./components/ProtectedRoute"
-
 import DashboardLayout from "./layouts/DashboardLayout"
 
 
@@ -20,7 +20,9 @@ function App() {
 
       <Routes>
 
-        {/* Public Routes */}
+        {/* =========================
+            PUBLIC ROUTES
+        ========================= */}
 
         <Route
           path="/login"
@@ -33,23 +35,32 @@ function App() {
         />
 
 
-        {/* Protected Routes */}
+        {/* =========================
+            PROTECTED ROUTES
+        ========================= */}
 
         <Route element={<ProtectedRoute />}>
 
-          <Route
-            element={<DashboardLayout />}
-          >
+          <Route element={<DashboardLayout />}>
+
+            {/* Dashboard */}
 
             <Route
               path="/dashboard"
               element={<Dashboard />}
             />
 
+
+            {/* Projects */}
+
+            <Route
+              path="/projects"
+              element={<Projects />}
+            />
+
           </Route>
 
         </Route>
-
 
       </Routes>
 
