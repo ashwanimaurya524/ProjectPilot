@@ -1,3 +1,5 @@
+
+import { useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
 import {
@@ -20,6 +22,8 @@ function Projects() {
   const [projects, setProjects] = useState([])
 
   const [loading, setLoading] = useState(true)
+
+  const navigate = useNavigate()
 
 
   // ========================================
@@ -698,9 +702,12 @@ function Projects() {
             {projects.map((project) => (
 
               <div
-                key={project._id}
-                className="rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-700"
-              >
+  key={project._id}
+  onClick={() =>
+    navigate(`/projects/${project._id}`)
+  }
+  className="cursor-pointer rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-blue-500"
+>
 
 
                 {/* Card header */}

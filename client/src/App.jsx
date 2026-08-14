@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard"
 import Projects from "./pages/Projects"
 import Tasks from "./pages/Tasks"
 import Teams from "./pages/Teams"
+import ProjectDetails from "./pages/ProjectDetails"
 
 import Login from "./auth/Login"
 import Register from "./auth/Register"
@@ -53,6 +54,11 @@ function App() {
     <Route
       path="/projects"
       element={<Projects />}
+    />
+
+    <Route
+      path="/projects/:id"
+      element={<ProjectDetails />}
     />
 
     <Route
