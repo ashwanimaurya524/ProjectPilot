@@ -7,6 +7,7 @@ import {
 import Dashboard from "./pages/Dashboard"
 import Projects from "./pages/Projects"
 import Tasks from "./pages/Tasks"
+import Teams from "./pages/Teams"
 
 import Login from "./auth/Login"
 import Register from "./auth/Register"
@@ -42,31 +43,31 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
 
-          <Route element={<DashboardLayout />}>
+  <Route element={<DashboardLayout />}>
 
-            {/* Dashboard */}
+    <Route
+      path="/dashboard"
+      element={<Dashboard />}
+    />
 
-            <Route
-              path="/dashboard"
-              element={<Dashboard />}
-            />
+    <Route
+      path="/projects"
+      element={<Projects />}
+    />
 
+    <Route
+      path="/tasks"
+      element={<Tasks />}
+    />
 
-            {/* Projects */}
+    <Route
+      path="/teams"
+      element={<Teams />}
+    />
 
-            <Route
-              path="/projects"
-              element={<Projects />}
-            />
+  </Route>
 
-            <Route
-  path="/tasks"
-  element={<Tasks />}
-/>
-
-          </Route>
-
-        </Route>
+</Route>
 
       </Routes>
 
