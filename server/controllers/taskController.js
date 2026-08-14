@@ -1,9 +1,9 @@
 const Task = require("../models/Task")
+const TeamMember = require("../models/TeamMember")
 
 
 // ==========================================
 // CREATE TASK
-// POST /api/tasks
 // ==========================================
 
 const createTask = async (req, res) => {
@@ -20,8 +20,6 @@ const createTask = async (req, res) => {
     } = req.body
 
 
-    // Check required fields
-
     if (!title || !project) {
       return res.status(400).json({
         message: "Title and project are required",
@@ -29,7 +27,23 @@ const createTask = async (req, res) => {
     }
 
 
-    // Create task
+    // Verify team member belongs to current user
+
+    if (assignedTo) {
+
+      const member =
+        await TeamMember.findOne({
+          _id: assignedTo,
+          owner: req.user.userId,
+        })
+
+      if (!member) {
+        return res.status(400).json({
+          message: "Invalid team member",
+        })
+      }
+    }
+
 
     const task = await Task.create({
 
@@ -41,7 +55,7 @@ const createTask = async (req, res) => {
 
       priority: priority || "Medium",
 
-      dueDate,
+      dueDate: dueDate || null,
 
       project,
 
@@ -52,9 +66,18 @@ const createTask = async (req, res) => {
     })
 
 
+    const populatedTask =
+      await Task.findById(task._id)
+        .populate("project", "name")
+        .populate(
+          "assignedTo",
+          "name email role"
+        )
+
+
     res.status(201).json({
       message: "Task created successfully",
-      task,
+      task: populatedTask,
     })
 
   } catch (error) {
@@ -65,8 +88,7 @@ const createTask = async (req, res) => {
     )
 
     res.status(500).json({
-      message:
-        "Server error while creating task",
+      message: "Server error while creating task",
     })
   }
 }
@@ -74,26 +96,26 @@ const createTask = async (req, res) => {
 
 // ==========================================
 // GET ALL TASKS
-// GET /api/tasks
 // ==========================================
 
 const getTasks = async (req, res) => {
   try {
 
-    const tasks = await Task.find({
-      owner: req.user.userId,
-    })
-      .populate(
-        "project",
-        "name"
-      )
-      .populate(
-        "assignedTo",
-        "name email"
-      )
-      .sort({
-        createdAt: -1,
+    const tasks =
+      await Task.find({
+        owner: req.user.userId,
       })
+        .populate(
+          "project",
+          "name"
+        )
+        .populate(
+          "assignedTo",
+          "name email role"
+        )
+        .sort({
+          createdAt: -1,
+        })
 
 
     res.status(200).json({
@@ -108,8 +130,7 @@ const getTasks = async (req, res) => {
     )
 
     res.status(500).json({
-      message:
-        "Server error while fetching tasks",
+      message: "Server error while fetching tasks",
     })
   }
 }
@@ -117,28 +138,27 @@ const getTasks = async (req, res) => {
 
 // ==========================================
 // GET SINGLE TASK
-// GET /api/tasks/:id
 // ==========================================
 
 const getTask = async (req, res) => {
   try {
 
-    const task = await Task.findOne({
-      _id: req.params.id,
-      owner: req.user.userId,
-    })
-      .populate(
-        "project",
-        "name"
-      )
-      .populate(
-        "assignedTo",
-        "name email"
-      )
+    const task =
+      await Task.findOne({
+        _id: req.params.id,
+        owner: req.user.userId,
+      })
+        .populate(
+          "project",
+          "name"
+        )
+        .populate(
+          "assignedTo",
+          "name email role"
+        )
 
 
     if (!task) {
-
       return res.status(404).json({
         message: "Task not found",
       })
@@ -157,8 +177,7 @@ const getTask = async (req, res) => {
     )
 
     res.status(500).json({
-      message:
-        "Server error while fetching task",
+      message: "Server error while fetching task",
     })
   }
 }
@@ -166,7 +185,6 @@ const getTask = async (req, res) => {
 
 // ==========================================
 // UPDATE TASK
-// PUT /api/tasks/:id
 // ==========================================
 
 const updateTask = async (req, res) => {
@@ -183,6 +201,22 @@ const updateTask = async (req, res) => {
     } = req.body
 
 
+    if (assignedTo) {
+
+      const member =
+        await TeamMember.findOne({
+          _id: assignedTo,
+          owner: req.user.userId,
+        })
+
+      if (!member) {
+        return res.status(400).json({
+          message: "Invalid team member",
+        })
+      }
+    }
+
+
     const task =
       await Task.findOneAndUpdate(
 
@@ -196,9 +230,10 @@ const updateTask = async (req, res) => {
           description,
           status,
           priority,
-          dueDate,
+          dueDate: dueDate || null,
           project,
-          assignedTo,
+          assignedTo:
+            assignedTo || null,
         },
 
         {
@@ -206,10 +241,17 @@ const updateTask = async (req, res) => {
           runValidators: true,
         }
       )
+        .populate(
+          "project",
+          "name"
+        )
+        .populate(
+          "assignedTo",
+          "name email role"
+        )
 
 
     if (!task) {
-
       return res.status(404).json({
         message: "Task not found",
       })
@@ -217,8 +259,7 @@ const updateTask = async (req, res) => {
 
 
     res.status(200).json({
-      message:
-        "Task updated successfully",
+      message: "Task updated successfully",
       task,
     })
 
@@ -230,8 +271,7 @@ const updateTask = async (req, res) => {
     )
 
     res.status(500).json({
-      message:
-        "Server error while updating task",
+      message: "Server error while updating task",
     })
   }
 }
@@ -239,7 +279,6 @@ const updateTask = async (req, res) => {
 
 // ==========================================
 // DELETE TASK
-// DELETE /api/tasks/:id
 // ==========================================
 
 const deleteTask = async (req, res) => {
@@ -253,7 +292,6 @@ const deleteTask = async (req, res) => {
 
 
     if (!task) {
-
       return res.status(404).json({
         message: "Task not found",
       })
@@ -261,8 +299,7 @@ const deleteTask = async (req, res) => {
 
 
     res.status(200).json({
-      message:
-        "Task deleted successfully",
+      message: "Task deleted successfully",
     })
 
   } catch (error) {
@@ -273,16 +310,11 @@ const deleteTask = async (req, res) => {
     )
 
     res.status(500).json({
-      message:
-        "Server error while deleting task",
+      message: "Server error while deleting task",
     })
   }
 }
 
-
-// ==========================================
-// EXPORT
-// ==========================================
 
 module.exports = {
   createTask,
