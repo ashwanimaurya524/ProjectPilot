@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react"
+
 import {
   Plus,
   Trash2,
   FolderKanban,
+  Pencil,
+  X,
 } from "lucide-react"
 
 import api from "../api/axios"
@@ -10,11 +13,37 @@ import api from "../api/axios"
 
 function Projects() {
 
+  // ========================================
+  // PROJECTS
+  // ========================================
+
   const [projects, setProjects] = useState([])
 
   const [loading, setLoading] = useState(true)
 
+
+  // ========================================
+  // CREATE / EDIT FORM
+  // ========================================
+
   const [showForm, setShowForm] = useState(false)
+
+  const [editingProject, setEditingProject] =
+    useState(null)
+
+
+  // ========================================
+  // MESSAGE
+  // ========================================
+
+  const [error, setError] = useState("")
+
+  const [success, setSuccess] = useState("")
+
+
+  // ========================================
+  // FORM DATA
+  // ========================================
 
   const [formData, setFormData] = useState({
     name: "",
@@ -34,17 +63,26 @@ function Projects() {
 
     try {
 
+      setLoading(true)
+
       const response = await api.get(
         "/api/projects"
       )
 
-      setProjects(response.data.projects)
+      setProjects(
+        response.data.projects
+      )
 
     } catch (error) {
 
       console.error(
         "Fetch projects error:",
         error
+      )
+
+      setError(
+        error.response?.data?.message ||
+        "Failed to load projects."
       )
 
     } finally {
@@ -81,24 +119,149 @@ function Projects() {
 
 
   // ========================================
-  // CREATE PROJECT
+  // OPEN CREATE FORM
+  // ========================================
+
+  const handleCreateClick = () => {
+
+    setEditingProject(null)
+
+    setError("")
+
+    setSuccess("")
+
+    setFormData({
+      name: "",
+      description: "",
+      status: "Planning",
+      priority: "Medium",
+      startDate: "",
+      dueDate: "",
+    })
+
+    setShowForm(true)
+  }
+
+
+  // ========================================
+  // OPEN EDIT FORM
+  // ========================================
+
+  const handleEditClick = (project) => {
+
+    setEditingProject(project)
+
+    setError("")
+
+    setSuccess("")
+
+    setFormData({
+      name: project.name || "",
+
+      description:
+        project.description || "",
+
+      status:
+        project.status || "Planning",
+
+      priority:
+        project.priority || "Medium",
+
+      startDate:
+        project.startDate
+          ? project.startDate.split("T")[0]
+          : "",
+
+      dueDate:
+        project.dueDate
+          ? project.dueDate.split("T")[0]
+          : "",
+    })
+
+    setShowForm(true)
+  }
+
+
+  // ========================================
+  // CLOSE FORM
+  // ========================================
+
+  const handleCloseForm = () => {
+
+    setShowForm(false)
+
+    setEditingProject(null)
+
+    setError("")
+  }
+
+
+  // ========================================
+  // CREATE / UPDATE PROJECT
   // ========================================
 
   const handleSubmit = async (e) => {
 
     e.preventDefault()
 
+    setError("")
+
+    setSuccess("")
+
+
     try {
 
-      const response = await api.post(
-        "/api/projects",
-        formData
-      )
+      // ====================================
+      // UPDATE
+      // ====================================
 
-      setProjects((prev) => [
-        response.data.project,
-        ...prev,
-      ])
+      if (editingProject) {
+
+        const response =
+          await api.put(
+            `/api/projects/${editingProject._id}`,
+            formData
+          )
+
+        setProjects((prev) =>
+          prev.map((project) =>
+            project._id ===
+            editingProject._id
+              ? response.data.project
+              : project
+          )
+        )
+
+        setSuccess(
+          "Project updated successfully!"
+        )
+
+      }
+
+      // ====================================
+      // CREATE
+      // ====================================
+
+      else {
+
+        const response =
+          await api.post(
+            "/api/projects",
+            formData
+          )
+
+        setProjects((prev) => [
+          response.data.project,
+          ...prev,
+        ])
+
+        setSuccess(
+          "Project created successfully!"
+        )
+      }
+
+
+      // Clear form
 
       setFormData({
         name: "",
@@ -109,15 +272,22 @@ function Projects() {
         dueDate: "",
       })
 
+
+      setEditingProject(null)
+
       setShowForm(false)
 
     } catch (error) {
 
       console.error(
-        "Create project error:",
+        "Project save error:",
         error
       )
 
+      setError(
+        error.response?.data?.message ||
+        "Something went wrong."
+      )
     }
   }
 
@@ -128,26 +298,38 @@ function Projects() {
 
   const handleDelete = async (id) => {
 
-    const confirmDelete =
+    const confirmed =
       window.confirm(
         "Are you sure you want to delete this project?"
       )
 
-    if (!confirmDelete) {
+    if (!confirmed) {
       return
     }
 
+
     try {
+
+      setError("")
+
+      setSuccess("")
+
 
       await api.delete(
         `/api/projects/${id}`
       )
+
 
       setProjects((prev) =>
         prev.filter(
           (project) =>
             project._id !== id
         )
+      )
+
+
+      setSuccess(
+        "Project deleted successfully!"
       )
 
     } catch (error) {
@@ -157,6 +339,10 @@ function Projects() {
         error
       )
 
+      setError(
+        error.response?.data?.message ||
+        "Failed to delete project."
+      )
     }
   }
 
@@ -166,7 +352,9 @@ function Projects() {
     <div className="space-y-6">
 
 
-      {/* Header */}
+      {/* =====================================
+          HEADER
+      ===================================== */}
 
       <div className="flex items-center justify-between">
 
@@ -184,9 +372,7 @@ function Projects() {
 
 
         <button
-          onClick={() =>
-            setShowForm(!showForm)
-          }
+          onClick={handleCreateClick}
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 font-medium transition hover:bg-blue-700"
         >
 
@@ -199,7 +385,39 @@ function Projects() {
       </div>
 
 
-      {/* Create Form */}
+      {/* =====================================
+          SUCCESS MESSAGE
+      ===================================== */}
+
+      {success && (
+
+        <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400">
+
+          {success}
+
+        </div>
+
+      )}
+
+
+      {/* =====================================
+          ERROR MESSAGE
+      ===================================== */}
+
+      {error && (
+
+        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+
+          {error}
+
+        </div>
+
+      )}
+
+
+      {/* =====================================
+          CREATE / EDIT FORM
+      ===================================== */}
 
       {showForm && (
 
@@ -208,9 +426,28 @@ function Projects() {
           className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
         >
 
-          <h2 className="mb-5 text-lg font-semibold">
-            Create New Project
-          </h2>
+          <div className="mb-5 flex items-center justify-between">
+
+            <h2 className="text-lg font-semibold">
+
+              {editingProject
+                ? "Edit Project"
+                : "Create New Project"}
+
+            </h2>
+
+
+            <button
+              type="button"
+              onClick={handleCloseForm}
+              className="text-slate-500 hover:text-white"
+            >
+
+              <X size={20} />
+
+            </button>
+
+          </div>
 
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -365,7 +602,7 @@ function Projects() {
           </div>
 
 
-          {/* Buttons */}
+          {/* Form buttons */}
 
           <div className="mt-6 flex gap-3">
 
@@ -373,17 +610,22 @@ function Projects() {
               type="submit"
               className="rounded-xl bg-blue-600 px-5 py-3 font-medium hover:bg-blue-700"
             >
-              Create Project
+
+              {editingProject
+                ? "Update Project"
+                : "Create Project"}
+
             </button>
+
 
             <button
               type="button"
-              onClick={() =>
-                setShowForm(false)
-              }
+              onClick={handleCloseForm}
               className="rounded-xl bg-slate-800 px-5 py-3 font-medium hover:bg-slate-700"
             >
+
               Cancel
+
             </button>
 
           </div>
@@ -393,18 +635,24 @@ function Projects() {
       )}
 
 
-      {/* Loading */}
+      {/* =====================================
+          LOADING
+      ===================================== */}
 
       {loading && (
 
         <div className="py-20 text-center text-slate-500">
+
           Loading projects...
+
         </div>
 
       )}
 
 
-      {/* Empty */}
+      {/* =====================================
+          EMPTY STATE
+      ===================================== */}
 
       {!loading &&
         projects.length === 0 && (
@@ -424,12 +672,23 @@ function Projects() {
               Create your first project to get started.
             </p>
 
+            <button
+              onClick={handleCreateClick}
+              className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium hover:bg-blue-700"
+            >
+
+              Create Project
+
+            </button>
+
           </div>
 
         )}
 
 
-      {/* Projects */}
+      {/* =====================================
+          PROJECT CARDS
+      ===================================== */}
 
       {!loading &&
         projects.length > 0 && (
@@ -440,8 +699,11 @@ function Projects() {
 
               <div
                 key={project._id}
-                className="rounded-2xl border border-slate-800 bg-slate-900 p-5"
+                className="rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-700"
               >
+
+
+                {/* Card header */}
 
                 <div className="flex items-start justify-between">
 
@@ -452,6 +714,7 @@ function Projects() {
                       <FolderKanban size={20} />
 
                     </div>
+
 
                     <div>
 
@@ -468,33 +731,64 @@ function Projects() {
                   </div>
 
 
-                  <button
-                    onClick={() =>
-                      handleDelete(
-                        project._id
-                      )
-                    }
-                    className="rounded-lg p-2 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
-                  >
+                  {/* Card actions */}
 
-                    <Trash2 size={17} />
+                  <div className="flex gap-1">
 
-                  </button>
+                    <button
+                      onClick={() =>
+                        handleEditClick(
+                          project
+                        )
+                      }
+                      className="rounded-lg p-2 text-slate-500 hover:bg-blue-500/10 hover:text-blue-400"
+                      title="Edit project"
+                    >
+
+                      <Pencil size={17} />
+
+                    </button>
+
+
+                    <button
+                      onClick={() =>
+                        handleDelete(
+                          project._id
+                        )
+                      }
+                      className="rounded-lg p-2 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                      title="Delete project"
+                    >
+
+                      <Trash2 size={17} />
+
+                    </button>
+
+                  </div>
 
                 </div>
 
 
+                {/* Description */}
+
                 <p className="mt-4 line-clamp-3 text-sm text-slate-400">
+
                   {project.description ||
                     "No description provided."}
+
                 </p>
 
+
+                {/* Card footer */}
 
                 <div className="mt-5 flex items-center justify-between">
 
                   <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+
                     {project.priority}
+
                   </span>
+
 
                   {project.dueDate && (
 
@@ -523,5 +817,6 @@ function Projects() {
     </div>
   )
 }
+
 
 export default Projects

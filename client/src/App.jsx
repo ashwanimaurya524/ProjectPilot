@@ -6,6 +6,7 @@ import {
 
 import Dashboard from "./pages/Dashboard"
 import Projects from "./pages/Projects"
+import Tasks from "./pages/Tasks"
 
 import Login from "./auth/Login"
 import Register from "./auth/Register"
@@ -57,6 +58,11 @@ function App() {
               path="/projects"
               element={<Projects />}
             />
+
+            <Route
+  path="/tasks"
+  element={<Tasks />}
+/>
 
           </Route>
 
