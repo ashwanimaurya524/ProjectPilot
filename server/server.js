@@ -9,6 +9,7 @@ const projectRoutes = require("./routes/projectRoutes")
 const taskRoutes = require("./routes/taskRoutes")
 const dashboardRoutes = require("./routes/dashboardRoutes")
 const teamRoutes = require("./routes/teamRoutes")
+const aiRoutes = require("./routes/aiRoutes")
 
 const app = express()
 
@@ -35,6 +36,10 @@ app.use(
 app.use(
   "/api/team",
   teamRoutes
+)
+app.use(
+  "/api/ai",
+  aiRoutes
 )
 
 // Test route

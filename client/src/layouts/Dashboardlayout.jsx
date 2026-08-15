@@ -1,43 +1,44 @@
-import {
-  NavLink,
-  Outlet,
-  useNavigate,
-} from "react-router-dom"
+import { useState } from "react"
 
 import {
   LayoutDashboard,
   FolderKanban,
   CheckSquare,
   Users,
-  MessageSquare,
   Bot,
-  BarChart3,
+  Sparkles,
   Settings,
   Bell,
+  Search,
   LogOut,
   Rocket,
-  Search,
+  Menu,
+  X,
+  UserCircle,
 } from "lucide-react"
+
+import {
+  NavLink,
+  Link,
+  Outlet,
+  useNavigate,
+} from "react-router-dom"
 
 
 function DashboardLayout() {
 
   const navigate = useNavigate()
 
+  const [mobileMenu, setMobileMenu] =
+    useState(false)
 
-  // Get user from localStorage
-
-  const storedUser =
-    localStorage.getItem("user")
-
-  const user = storedUser
-    ? JSON.parse(storedUser)
-    : null
+  const [search, setSearch] =
+    useState("")
 
 
-  // ========================================
+  // =====================================
   // LOGOUT
-  // ========================================
+  // =====================================
 
   const handleLogout = () => {
 
@@ -45,15 +46,23 @@ function DashboardLayout() {
 
     localStorage.removeItem("user")
 
-    navigate("/login", {
-      replace: true,
-    })
+    navigate("/login")
+
   }
 
 
-  // ========================================
-  // SIDEBAR ITEMS
-  // ========================================
+  // =====================================
+  // CLOSE MOBILE MENU
+  // =====================================
+
+  const closeMobileMenu = () => {
+    setMobileMenu(false)
+  }
+
+
+  // =====================================
+  // NAVIGATION
+  // =====================================
 
   const navigation = [
 
@@ -70,33 +79,15 @@ function DashboardLayout() {
     },
 
     {
-      name: "My Tasks",
+      name: "Tasks",
       path: "/tasks",
       icon: CheckSquare,
     },
 
     {
-      name: "Teams",
+      name: "Team",
       path: "/teams",
       icon: Users,
-    },
-
-    {
-      name: "Chat",
-      path: "/chat",
-      icon: MessageSquare,
-    },
-
-    {
-      name: "AI Assistant",
-      path: "/ai-assistant",
-      icon: Bot,
-    },
-
-    {
-      name: "Analytics",
-      path: "/analytics",
-      icon: BarChart3,
     },
 
   ]
@@ -104,32 +95,66 @@ function DashboardLayout() {
 
   return (
 
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="flex min-h-screen bg-slate-950 text-white">
 
 
-      {/* =====================================
+      {/* =========================================
+          MOBILE OVERLAY
+      ========================================= */}
+
+      {mobileMenu && (
+
+        <div
+          onClick={closeMobileMenu}
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+        />
+
+      )}
+
+
+      {/* =========================================
           SIDEBAR
-      ===================================== */}
+      ========================================= */}
 
-      <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-950">
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50
+          flex w-64 flex-col
+          border-r border-slate-800
+          bg-slate-900
+          transition-transform duration-300
+          md:static md:translate-x-0
+          ${
+            mobileMenu
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
+        `}
+      >
 
 
-        {/* Logo */}
+        {/* =====================================
+            LOGO
+        ===================================== */}
 
-        <div className="flex h-20 items-center border-b border-slate-800 px-6">
+        <div className="flex h-20 items-center justify-between border-b border-slate-800 px-5">
 
-          <div className="flex items-center gap-3">
+          <Link
+            to="/dashboard"
+            onClick={closeMobileMenu}
+            className="flex items-center gap-3"
+          >
 
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
 
-              <Rocket size={20} />
+              <Rocket size={21} />
 
             </div>
 
 
             <div>
 
-              <h1 className="text-xl font-bold">
+              <h1 className="text-lg font-bold text-white">
                 ProjectPilot
               </h1>
 
@@ -139,225 +164,368 @@ function DashboardLayout() {
 
             </div>
 
-          </div>
-
-        </div>
+          </Link>
 
 
-        {/* Navigation */}
-
-        <nav className="flex-1 space-y-2 p-4">
-
-          {navigation.map((item) => {
-
-            const Icon = item.icon
-
-            return (
-
-              <NavLink
-                key={item.name}
-                to={item.path}
-                className={({ isActive }) =>
-                  `
-                  flex
-                  items-center
-                  gap-3
-                  rounded-xl
-                  px-4
-                  py-3
-                  text-sm
-                  font-medium
-                  transition
-
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-slate-400 hover:bg-slate-900 hover:text-white"
-                  }
-                  `
-                }
-              >
-
-                <Icon size={19} />
-
-                <span>
-                  {item.name}
-                </span>
-
-              </NavLink>
-
-            )
-
-          })}
-
-        </nav>
-
-
-        {/* Settings */}
-
-        <div className="border-t border-slate-800 p-4">
-
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              `
-              flex
-              items-center
-              gap-3
-              rounded-xl
-              px-4
-              py-3
-              text-sm
-              font-medium
-              transition
-
-              ${
-                isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:bg-slate-900 hover:text-white"
-              }
-              `
-            }
-          >
-
-            <Settings size={19} />
-
-            <span>
-              Settings
-            </span>
-
-          </NavLink>
-
-
-          {/* Logout */}
+          {/* MOBILE CLOSE */}
 
           <button
-            onClick={handleLogout}
-            className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-red-500/10 hover:text-red-400"
+            onClick={closeMobileMenu}
+            className="text-slate-500 hover:text-white md:hidden"
           >
 
-            <LogOut size={19} />
-
-            <span>
-              Logout
-            </span>
+            <X size={20} />
 
           </button>
 
         </div>
 
-      </aside>
+
+        {/* =====================================
+            NAVIGATION
+        ===================================== */}
+
+        <nav className="flex-1 overflow-y-auto p-4">
 
 
-      {/* =====================================
-          MAIN AREA
-      ===================================== */}
+          {/* MAIN */}
 
-      <div className="ml-64">
-
-
-        {/* =================================
-            TOP NAVBAR
-        ================================= */}
-
-        <header className="flex h-20 items-center justify-between border-b border-slate-800 bg-slate-950 px-6">
+          <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">
+            Workspace
+          </p>
 
 
-          {/* Search */}
+          <div className="space-y-1">
 
-          <div className="relative w-80">
+            {navigation.map((item) => {
 
-            <Search
-              size={19}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-            />
+              const Icon = item.icon
 
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full rounded-xl border border-slate-800 bg-slate-900 py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-500"
-            />
+              return (
+
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `
+                    flex items-center gap-3
+                    rounded-xl px-3 py-3
+                    text-sm font-medium
+                    transition
+                    ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    }
+                    `
+                  }
+                >
+
+                  <Icon size={19} />
+
+                  <span>
+                    {item.name}
+                  </span>
+
+                </NavLink>
+
+              )
+
+            })}
 
           </div>
 
 
-          {/* Right side */}
+          {/* AI */}
 
-          <div className="flex items-center gap-6">
+          <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">
+            Artificial Intelligence
+          </p>
 
 
-            {/* Notification */}
+          <div className="space-y-1">
 
-            <button className="relative text-slate-400 hover:text-white">
 
-              <Bell size={21} />
+            {/* AI ASSISTANT */}
 
-              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-blue-500" />
+            <NavLink
+              to="/ai"
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                `
+                flex items-center gap-3
+                rounded-xl px-3 py-3
+                text-sm font-medium
+                transition
+                ${
+                  isActive
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }
+                `
+              }
+            >
+
+              <Bot size={19} />
+
+              <span>
+                AI Assistant
+              </span>
+
+            </NavLink>
+
+
+            {/* AI TASK GENERATOR */}
+
+            <NavLink
+              to="/ai/tasks"
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                `
+                flex items-center gap-3
+                rounded-xl px-3 py-3
+                text-sm font-medium
+                transition
+                ${
+                  isActive
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }
+                `
+              }
+            >
+
+              <Sparkles size={19} />
+
+              <span>
+                AI Task Generator
+              </span>
+
+            </NavLink>
+
+
+          </div>
+
+
+          {/* OTHER */}
+
+          <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">
+            General
+          </p>
+
+
+          <div className="space-y-1">
+
+
+            {/* SETTINGS */}
+
+            <NavLink
+              to="/settings"
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                `
+                flex items-center gap-3
+                rounded-xl px-3 py-3
+                text-sm font-medium
+                transition
+                ${
+                  isActive
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }
+                `
+              }
+            >
+
+              <Settings size={19} />
+
+              <span>
+                Settings
+              </span>
+
+            </NavLink>
+
+
+          </div>
+
+        </nav>
+
+
+        {/* =====================================
+            LOGOUT
+        ===================================== */}
+
+        <div className="border-t border-slate-800 p-4">
+
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-400 transition hover:bg-red-500/10 hover:text-red-400"
+          >
+
+            <LogOut size={19} />
+
+            Logout
+
+          </button>
+
+        </div>
+
+
+      </aside>
+
+
+      {/* =========================================
+          MAIN CONTENT
+      ========================================= */}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+
+
+        {/* =====================================
+            TOP HEADER
+        ===================================== */}
+
+        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-800 bg-slate-950/95 px-5 backdrop-blur md:px-8">
+
+
+          {/* LEFT */}
+
+          <div className="flex items-center gap-4">
+
+
+            {/* MOBILE MENU */}
+
+            <button
+              onClick={() =>
+                setMobileMenu(true)
+              }
+              className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white md:hidden"
+            >
+
+              <Menu size={22} />
 
             </button>
 
 
-            {/* User */}
+            {/* SEARCH */}
 
-            <div className="flex items-center gap-3">
+            <div className="relative hidden w-72 sm:block">
 
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-700 bg-slate-800 text-lg font-semibold">
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600"
+              />
 
-                {user?.name
-                  ? user.name
-                      .charAt(0)
-                      .toUpperCase()
-                  : "U"}
-
-              </div>
-
-
-              <div className="hidden md:block">
-
-                <p className="text-sm font-semibold">
-
-                  {user?.name || "User"}
-
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  Developer
-                </p>
-
-              </div>
+              <input
+                value={search}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
+                placeholder="Search..."
+                className="w-full rounded-xl border border-slate-800 bg-slate-900 py-2.5 pl-10 pr-4 text-sm text-white outline-none placeholder:text-slate-600 focus:border-blue-500"
+              />
 
             </div>
 
 
-            {/* Logout */}
+            {/* MOBILE LOGO */}
 
-            <button
-              onClick={handleLogout}
-              className="text-sm text-slate-400 hover:text-white"
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 sm:hidden"
             >
 
-              Logout
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+
+                <Rocket size={18} />
+
+              </div>
+
+              <span className="font-bold">
+                ProjectPilot
+              </span>
+
+            </Link>
+
+
+          </div>
+
+
+          {/* RIGHT */}
+
+          <div className="flex items-center gap-3">
+
+
+            {/* NOTIFICATION */}
+
+            <button
+              className="relative rounded-xl p-2.5 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            >
+
+              <Bell size={20} />
+
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500" />
 
             </button>
+
+
+            {/* DIVIDER */}
+
+            <div className="hidden h-8 w-px bg-slate-800 sm:block" />
+
+
+            {/* PROFILE */}
+
+            <button
+              onClick={() =>
+                navigate("/profile")
+              }
+              className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-slate-800"
+            >
+
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600">
+
+                <UserCircle size={21} />
+
+              </div>
+
+
+              <div className="hidden text-left sm:block">
+
+                <p className="text-sm font-medium text-white">
+                  My Account
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Project Manager
+                </p>
+
+              </div>
+
+            </button>
+
 
           </div>
 
         </header>
 
 
-        {/* =================================
-            PAGE CONTENT
-        ================================= */}
+        {/* =====================================
+            CONTENT
+        ===================================== */}
 
-        <main className="min-h-[calc(100vh-5rem)] p-6">
+        <main className="flex-1 p-5 md:p-8">
 
           <Outlet />
 
         </main>
 
+
       </div>
 
     </div>
+
   )
 }
 
