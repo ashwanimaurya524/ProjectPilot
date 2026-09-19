@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from "react-router-dom"
 
 
@@ -55,6 +56,8 @@ function App() {
         {/* ==================================
             AUTH ROUTES
         ================================== */}
+        
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route
           path="/login"
